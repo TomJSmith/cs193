@@ -7,9 +7,12 @@
 //
 
 import Foundation
+import SwiftUI
 
 struct MemoryGame<CardContent> where CardContent: Equatable {
     var cards: Array<Card>
+    let theme: Theme
+    var score: Int = 0
     
     var indexOfTheOneAndOnlyFaceUpCard: Int? {
         get { cards.indices.filter { cards[$0].isFaceUp }.only }
@@ -26,6 +29,10 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
                 if cards[chosenIndex].content == cards[potentialMatchIndex].content {
                     cards[chosenIndex].isMatched = true
                     cards[potentialMatchIndex].isMatched = true
+                    score += 2
+                } else {
+                    if cards[chosenIndex].hasBeenShown { score -= 1 }
+                    if cards[potentialMatchIndex].hasBeenShown { score -= 1 }
                 }
                 self.cards[chosenIndex].isFaceUp = true
             } else {
@@ -34,10 +41,12 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
         }
     }
     
-    init(numberOfPairsOfCards: Int, cardContentFactory: (Int) -> CardContent) {
+    init(of theme: Theme) {
         cards = Array<Card>()
-        for pairIndex in 0..<numberOfPairsOfCards {
-            let content = cardContentFactory(pairIndex);
+        self.theme = theme
+        
+        for pairIndex in 0..<theme.numberOfPairsOfCards {
+            let content = theme.cardContentFactory(pairIndex);
             cards.append(Card(id: pairIndex * 2, content: content))
             cards.append(Card(id: pairIndex * 2 + 1, content: content))
         }
@@ -47,7 +56,30 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
     struct Card: Identifiable {
         var id: Int
         var content: CardContent
-        var isFaceUp: Bool = false
+        var isFaceUp: Bool = false {
+            didSet {
+                if oldValue {
+                    hasBeenShown = true
+                }
+            }
+        }
         var isMatched: Bool = false
+        var hasBeenShown: Bool = false
+    }
+    
+    struct Theme {
+        var name: String
+        var color: Color
+        var contents: [CardContent]
+
+        var numberOfPairsOfCards: Int {
+            get {
+                return contents.count
+            }
+        }
+        
+        func cardContentFactory(_ index: Int) -> CardContent {
+            contents[index]
+        }
     }
 }
