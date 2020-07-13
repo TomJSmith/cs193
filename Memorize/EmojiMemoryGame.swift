@@ -11,8 +11,7 @@ import SwiftUI
 class EmojiMemoryGame: ObservableObject {
     @Published private var model: MemoryGame<String> = EmojiMemoryGame.createMemroyGame()
     
-    
-    static func createMemroyGame() -> MemoryGame<String> {
+    private static func createMemroyGame() -> MemoryGame<String> {
         let themes = [
             MemoryGame<String>.Theme(name: "Halloween", color: Color.orange, contents: ["👻", "🎃", "🦇", "🍬", "🍭", "🕷", "🕸"]),
             MemoryGame<String>.Theme(name: "Christmas", color: Color.blue, contents: ["🎅", "❄️", "☃️", "🎁"]),
