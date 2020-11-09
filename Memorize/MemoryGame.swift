@@ -58,13 +58,66 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
         var content: CardContent
         var isFaceUp: Bool = false {
             didSet {
-                if oldValue {
-                    hasBeenShown = true
+                hasBeenShown = oldValue
+                
+                if (isFaceUp) {
+                    startUsingBonusTime()
+                }
+                else {
+                    stopUsingBonusTime()
                 }
             }
         }
-        var isMatched: Bool = false
+        var isMatched: Bool = false {
+            didSet {
+                if isMatched {
+                    stopUsingBonusTime()
+                }
+            }
+        }
         var hasBeenShown: Bool = false
+        
+        // MARK: - Bonus Time
+        var bonusTimeLimit: TimeInterval = 6
+        
+        private var faceUpTime: TimeInterval {
+            if let lastFaceUpTime = self.lastFaceUpDate {
+                return pastFaceUpTime + Date().timeIntervalSince(lastFaceUpTime)
+            } else {
+                return pastFaceUpTime
+            }
+        }
+        
+        var lastFaceUpDate: Date?
+        
+        var pastFaceUpTime: TimeInterval = 0
+        
+        var bonusTimeRemaining: TimeInterval {
+            max(0, bonusTimeLimit - faceUpTime)
+        }
+        
+        var bonusRemaining: Double {
+            (bonusTimeRemaining > 0 && bonusTimeLimit > 0) ? bonusTimeRemaining/bonusTimeLimit : 0
+        }
+        
+        var hasEarnedBonus: Bool {
+            isMatched && bonusTimeRemaining > 0
+        }
+        
+        var isConsumingBonusTime: Bool {
+            isFaceUp && !isMatched && bonusTimeRemaining > 0
+        }
+        
+        private mutating func startUsingBonusTime() {
+            if isConsumingBonusTime, lastFaceUpDate == nil {
+                lastFaceUpDate = Date()
+            }
+        }
+        
+        private mutating func stopUsingBonusTime() {
+            pastFaceUpTime = faceUpTime
+            lastFaceUpDate = nil
+        }
     }
     
     struct Theme {
